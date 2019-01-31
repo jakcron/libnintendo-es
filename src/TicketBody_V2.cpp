@@ -1,9 +1,5 @@
 #include <nn/es/TicketBody_V2.h>
 
-#ifdef MSC_VER
-#define 
-#endif
-
 nn::es::TicketBody_V2::TicketBody_V2()
 {
 	clear();
