@@ -1,3 +1,0 @@
-[submodule "deps/libfnd"]
-	path = deps/libfnd
-	url = https://github.com/jakcron/libfnd.git
