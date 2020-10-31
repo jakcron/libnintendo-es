@@ -1,15 +1,14 @@
 #pragma once
-#include <string>
-#include <fnd/IByteModel.h>
-#include <fnd/List.h>
+#include <tc/ArgumentOutOfRangeException.h>
+#include <tc/ArgumentNullException.h>
+#include <tc/ByteData.h>
 #include <nn/es/ticket.h>
 
 namespace nn
 {
 namespace es
 {
-	class TicketBody_V2 :
-		public fnd::IByteModel
+	class TicketBody_V2
 	{
 	public:
 		TicketBody_V2();
@@ -22,7 +21,7 @@ namespace es
 		// IByteModel
 		void toBytes();
 		void fromBytes(const byte_t* bytes, size_t len);
-		const fnd::Vec<byte_t>& getBytes() const;
+		const tc::ByteData& getBytes() const;
 
 		// variables
 		void clear();
@@ -45,8 +44,8 @@ namespace es
 		byte_t getCommonKeyId() const;
 		void setCommonKeyId(byte_t id);
 
-		const fnd::List<es::ticket::PropertyMaskFlags>& getPropertyFlags() const;
-		void setPropertyFlags(const fnd::List<es::ticket::PropertyMaskFlags>& flags);
+		const std::vector<es::ticket::PropertyMaskFlags>& getPropertyFlags() const;
+		void setPropertyFlags(const std::vector<es::ticket::PropertyMaskFlags>& flags);
 
 		const byte_t* getReservedRegion() const;
 		void setReservedRegion(const byte_t* data, size_t len);
@@ -79,20 +78,20 @@ namespace es
 		const std::string kModuleName = "TICKET_BODY_V2";
 		
 		// raw binary
-		fnd::Vec<byte_t> mRawBinary;
+		tc::ByteData mRawBinary;
 
 		// variables
 		std::string mIssuer;
-		byte_t mEncTitleKey[ticket::kEncTitleKeySize];
+		std::array<byte_t, ticket::kEncTitleKeySize> mEncTitleKey;
 		ticket::TitleKeyEncType mEncType;
 		uint16_t mTicketVersion;
 		ticket::LicenseType mLicenseType;
 		byte_t mCommonKeyId;
-		fnd::List<es::ticket::PropertyMaskFlags> mPropertyFlags;
-		byte_t mReservedRegion[ticket::kReservedRegionSize]; // explicitly reserved
+		std::vector<es::ticket::PropertyMaskFlags> mPropertyFlags;
+		std::array<byte_t, ticket::kReservedRegionSize> mReservedRegion; // explicitly reserved
 		uint64_t mTicketId;
 		uint64_t mDeviceId;
-		byte_t mRightsId[ticket::kRightsIdSize];
+		std::array<byte_t, ticket::kRightsIdSize> mRightsId;
 		uint32_t mAccountId;
 		uint32_t mSectTotalSize;
 		uint32_t mSectHeaderOffset;

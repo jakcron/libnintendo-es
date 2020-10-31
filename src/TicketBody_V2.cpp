@@ -1,4 +1,5 @@
 #include <nn/es/TicketBody_V2.h>
+#include <bitset>
 
 nn::es::TicketBody_V2::TicketBody_V2()
 {
@@ -20,16 +21,16 @@ void nn::es::TicketBody_V2::operator=(const TicketBody_V2 & other)
 	{
 		clear();
 		mIssuer = other.mIssuer;
-		memcpy(mEncTitleKey, other.mEncTitleKey, ticket::kEncTitleKeySize);
+		mEncTitleKey = other.mEncTitleKey;
 		mEncType = other.mEncType;
 		mTicketVersion = other.mTicketVersion;
 		mLicenseType = other.mLicenseType;
 		mCommonKeyId = other.mCommonKeyId;
 		mPropertyFlags = other.mPropertyFlags;
-		memcpy(mReservedRegion, other.mReservedRegion, ticket::kReservedRegionSize);
+		mReservedRegion = other.mReservedRegion;
 		mTicketId = other.mTicketId;
 		mDeviceId = other.mDeviceId;
-		memcpy(mRightsId, other.mRightsId, ticket::kRightsIdSize);
+		mRightsId = other.mRightsId;
 		mAccountId = other.mAccountId;
 		mSectTotalSize = other.mSectTotalSize;
 		mSectHeaderOffset = other.mSectHeaderOffset;
@@ -41,15 +42,15 @@ void nn::es::TicketBody_V2::operator=(const TicketBody_V2 & other)
 bool nn::es::TicketBody_V2::operator==(const TicketBody_V2 & other) const
 {
 	return (mIssuer == other.mIssuer) \
-		&& (memcmp(mEncTitleKey, other.mEncTitleKey, ticket::kEncTitleKeySize) == 0) \
+		&& (mEncTitleKey == other.mEncTitleKey) \
 		&& (mEncType == other.mEncType) \
 		&& (mTicketVersion == other.mTicketVersion) \
 		&& (mLicenseType == other.mLicenseType) \
 		&& (mPropertyFlags == other.mPropertyFlags) \
-		&& (memcmp(mReservedRegion, other.mReservedRegion, ticket::kReservedRegionSize) == 0) \
+		&& (mReservedRegion == other.mReservedRegion) \
 		&& (mTicketId == other.mTicketId) \
 		&& (mDeviceId == other.mDeviceId) \
-		&& (memcmp(mRightsId, other.mRightsId, ticket::kRightsIdSize) == 0) \
+		&& (mRightsId == other.mRightsId) \
 		&& (mAccountId == other.mAccountId) \
 		&& (mSectTotalSize == other.mSectTotalSize) \
 		&& (mSectHeaderOffset == other.mSectHeaderOffset) \
@@ -64,93 +65,93 @@ bool nn::es::TicketBody_V2::operator!=(const TicketBody_V2 & other) const
 
 void nn::es::TicketBody_V2::toBytes()
 {
-	mRawBinary.alloc(sizeof(sTicketBody_v2));
+	mRawBinary = tc::ByteData(sizeof(sTicketBody_v2));
 	sTicketBody_v2* body = (sTicketBody_v2*)mRawBinary.data();
 
 	body->format_version = (ticket::kFormatVersion);
 
-	strncpy(body->issuer, mIssuer.c_str(), ticket::kIssuerSize);
-	memcpy(body->enc_title_key, mEncTitleKey, ticket::kEncTitleKeySize);
+	strncpy(body->issuer.data(), mIssuer.c_str(), body->issuer.size());
+	body->enc_title_key = mEncTitleKey;
 	body->title_key_enc_type = (mEncType);
-	body->ticket_version = (mTicketVersion);
+	body->ticket_version.wrap(mTicketVersion);
 	body->license_type = mLicenseType;
 	body->common_key_id = mCommonKeyId;
-	byte_t property_mask = 0;
+	std::bitset<16> property_mask = 0;
 	for (size_t i = 0; i < mPropertyFlags.size(); i++)
 	{
-		property_mask |= _BIT(mPropertyFlags[i]);
+		property_mask.set(mPropertyFlags[i]);
 	}
-	body->property_mask = (property_mask);
-	memcpy(body->reserved_region, mReservedRegion, ticket::kReservedRegionSize);
-	body->ticket_id = (mTicketId);
-	body->device_id = (mDeviceId);
-	memcpy(body->rights_id, mRightsId, ticket::kRightsIdSize);
-	body->account_id = (mAccountId);
-	body->sect_total_size = (mSectTotalSize);
-	body->sect_header_offset = (mSectHeaderOffset);
-	body->sect_num = (mSectNum);
-	body->sect_entry_size = (mSectEntrySize);
+	body->property_mask.wrap(property_mask.to_ulong());
+	body->reserved_region = mReservedRegion;
+	body->ticket_id.wrap(mTicketId);
+	body->device_id.wrap(mDeviceId);
+	body->rights_id = mRightsId;
+	body->account_id.wrap(mAccountId);
+	body->sect_total_size.wrap(mSectTotalSize);
+	body->sect_header_offset.wrap(mSectHeaderOffset);
+	body->sect_num.wrap(mSectNum);
+	body->sect_entry_size.wrap(mSectEntrySize);
 }
 
 void nn::es::TicketBody_V2::fromBytes(const byte_t * bytes, size_t len)
 {
-	if (len < sizeof(sTicketBody_v2))
-	{
-		throw fnd::Exception(kModuleName, "Header size too small");
-	}
+	if (bytes == nullptr) { throw tc::ArgumentNullException(kModuleName, "bytes was null."); }
+	if (len < sizeof(sSectionHeader_v2)) { throw tc::ArgumentOutOfRangeException(kModuleName, "Binary too small."); }
+
 
 	clear();
 
-	mRawBinary.alloc(sizeof(sTicketBody_v2));
+	mRawBinary = tc::ByteData(sizeof(sTicketBody_v2));
 	memcpy(mRawBinary.data(), bytes, mRawBinary.size());
 	sTicketBody_v2* body = (sTicketBody_v2*)mRawBinary.data();
 
 	if (body->format_version != ticket::kFormatVersion)
 	{
-		throw fnd::Exception(kModuleName, "Unsupported format version");
+		throw tc::ArgumentOutOfRangeException(kModuleName, "Unsupported format version");
 	}
 
-	mIssuer = std::string(body->issuer, _MIN(strlen(body->issuer), ticket::kIssuerSize));
-	memcpy(mEncTitleKey, body->enc_title_key, ticket::kEncTitleKeySize);
+	mIssuer = std::string(body->issuer.data(), std::min<size_t>(strlen(body->issuer.data()), body->issuer.size()));
+	mEncTitleKey = body->enc_title_key;
 	mEncType = (ticket::TitleKeyEncType)body->title_key_enc_type;
-	mTicketVersion = body->ticket_version.get();
+	mTicketVersion = body->ticket_version.unwrap();
 	mLicenseType = (ticket::LicenseType)body->license_type;
 	mCommonKeyId = body->common_key_id;
-	for (size_t i = 0; i < mPropertyFlags.size(); i++)
+	std::bitset<16> property_mask = body->property_mask.unwrap();
+	for (size_t i = 0; i < property_mask.size(); i++)
 	{
-		if (_HAS_BIT(body->property_mask, i))
-			mPropertyFlags.addElement((ticket::PropertyMaskFlags)i);
+		if (property_mask.test(i))
+			mPropertyFlags.push_back((ticket::PropertyMaskFlags)i);
 	}
-	memcpy(mReservedRegion, body->reserved_region, ticket::kReservedRegionSize);
-	mTicketId = body->ticket_id.get();
-	mDeviceId = body->device_id.get();
-	memcpy(mRightsId, body->rights_id, ticket::kRightsIdSize);
-	mAccountId = body->account_id.get();
-	mSectTotalSize = body->sect_total_size.get();
-	mSectHeaderOffset = body->sect_header_offset.get();
-	mSectNum = body->sect_num.get();
-	mSectEntrySize = body->sect_entry_size.get();
+	mReservedRegion = body->reserved_region;
+	mTicketId = body->ticket_id.unwrap();
+	mDeviceId = body->device_id.unwrap();
+	mRightsId = body->rights_id;
+	mAccountId = body->account_id.unwrap();
+	mSectTotalSize = body->sect_total_size.unwrap();
+	mSectHeaderOffset = body->sect_header_offset.unwrap();
+	mSectNum = body->sect_num.unwrap();
+	mSectEntrySize = body->sect_entry_size.unwrap();
 }
 
-const fnd::Vec<byte_t>& nn::es::TicketBody_V2::getBytes() const
+const tc::ByteData& nn::es::TicketBody_V2::getBytes() const
 {
 	return mRawBinary;
 }
 
 void nn::es::TicketBody_V2::clear()
 {
-	mRawBinary.clear();
+	mRawBinary = tc::ByteData();
 	mIssuer.clear();
-	memset(mEncTitleKey, 0, ticket::kEncTitleKeySize);
+	mEncTitleKey.fill(0);
 	mEncType = ticket::AES128_CBC;
 	mTicketVersion = 0;
 	mLicenseType = ticket::LICENSE_PERMANENT;
 	mCommonKeyId = 0;
 	mPropertyFlags.clear();
-	memset(mReservedRegion, 0, ticket::kReservedRegionSize);
+	mReservedRegion.fill(0);
 	mTicketId = 0;
 	mDeviceId = 0;
-	memset(mRightsId, 0, ticket::kRightsIdSize);
+	mRightsId.fill(0);
 	mAccountId = 0;
 	mSectTotalSize = 0;
 	mSectHeaderOffset = 0;
@@ -167,7 +168,7 @@ void nn::es::TicketBody_V2::setIssuer(const std::string & issuer)
 {
 	if (issuer.length() > ticket::kIssuerSize)
 	{
-		throw fnd::Exception(kModuleName, "Issuer is too long");
+		throw tc::ArgumentOutOfRangeException(kModuleName, "Issuer is too long");
 	}
 
 	mIssuer = issuer;
@@ -175,13 +176,13 @@ void nn::es::TicketBody_V2::setIssuer(const std::string & issuer)
 
 const byte_t * nn::es::TicketBody_V2::getEncTitleKey() const
 {
-	return mEncTitleKey;
+	return mEncTitleKey.data();
 }
 
 void nn::es::TicketBody_V2::setEncTitleKey(const byte_t * data, size_t len)
 {
-	memset(mEncTitleKey, 0, ticket::kEncTitleKeySize);
-	memcpy(mEncTitleKey, data, _MIN(len, ticket::kEncTitleKeySize));
+	mEncTitleKey.fill(0);
+	memcpy(mEncTitleKey.data(), data, std::min<size_t>(len, mEncTitleKey.size()));
 }
 
 nn::es::ticket::TitleKeyEncType nn::es::TicketBody_V2::getTitleKeyEncType() const
@@ -224,25 +225,25 @@ void nn::es::TicketBody_V2::setCommonKeyId(byte_t id)
 	mCommonKeyId = id;
 }
 
-const fnd::List<nn::es::ticket::PropertyMaskFlags>& nn::es::TicketBody_V2::getPropertyFlags() const
+const std::vector<nn::es::ticket::PropertyMaskFlags>& nn::es::TicketBody_V2::getPropertyFlags() const
 {
 	return mPropertyFlags;
 }
 
-void nn::es::TicketBody_V2::setPropertyFlags(const fnd::List<nn::es::ticket::PropertyMaskFlags>& flags)
+void nn::es::TicketBody_V2::setPropertyFlags(const std::vector<nn::es::ticket::PropertyMaskFlags>& flags)
 {
 	mPropertyFlags = flags;
 }
 
 const byte_t * nn::es::TicketBody_V2::getReservedRegion() const
 {
-	return mReservedRegion;
+	return mReservedRegion.data();
 }
 
 void nn::es::TicketBody_V2::setReservedRegion(const byte_t * data, size_t len)
 {
-	memset(mReservedRegion, 0, ticket::kReservedRegionSize);
-	memcpy(mReservedRegion, data, _MIN(len, ticket::kReservedRegionSize));
+	mReservedRegion.fill(0);
+	memcpy(mReservedRegion.data(), data, std::min<size_t>(len, mReservedRegion.size()));
 }
 
 uint64_t nn::es::TicketBody_V2::getTicketId() const
@@ -267,12 +268,13 @@ void nn::es::TicketBody_V2::setDeviceId(uint64_t id)
 
 const byte_t * nn::es::TicketBody_V2::getRightsId() const
 {
-	return mRightsId;
+	return mRightsId.data();
 }
 
 void nn::es::TicketBody_V2::setRightsId(const byte_t * id)
 {
-	memcpy(mRightsId, id, ticket::kRightsIdSize);
+	mRightsId.fill(0);
+	memcpy(mRightsId.data(), id, mRightsId.size());
 }
 
 uint32_t nn::es::TicketBody_V2::getAccountId() const

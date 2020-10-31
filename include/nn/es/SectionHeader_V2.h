@@ -1,14 +1,14 @@
 #pragma once
-#include <string>
-#include <fnd/IByteModel.h>
+#include <tc/ArgumentOutOfRangeException.h>
+#include <tc/ArgumentNullException.h>
+#include <tc/ByteData.h>
 #include <nn/es/ticket.h>
 
 namespace nn
 {
 namespace es
 {
-	class SectionHeader_V2 :
-		public fnd::IByteModel
+	class SectionHeader_V2
 	{
 	public:
 		SectionHeader_V2();
@@ -21,7 +21,7 @@ namespace es
 		// IByteModel
 		void toBytes();
 		void fromBytes(const byte_t* data, size_t len);
-		const fnd::Vec<byte_t>& getBytes() const;
+		const tc::ByteData& getBytes() const;
 
 		// variables
 		virtual void clear();
@@ -45,7 +45,7 @@ namespace es
 		const std::string kModuleName = "SECTION_HEADER_V2";
 		
 		// raw binary
-		fnd::Vec<byte_t> mRawBinary;
+		tc::ByteData mRawBinary;
 
 		// variables
 		uint32_t mSectionOffset;

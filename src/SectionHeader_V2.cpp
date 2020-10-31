@@ -16,7 +16,7 @@ void nn::es::SectionHeader_V2::operator=(const SectionHeader_V2 & other)
 	}
 	else
 	{
-		mRawBinary.clear();
+		memset(mRawBinary.data(), 0, mRawBinary.size());
 		mSectionOffset = other.mSectionOffset;
 		mRecordSize = other.mRecordSize;
 		mSectionSize = other.mSectionSize;
@@ -41,44 +41,42 @@ bool nn::es::SectionHeader_V2::operator!=(const SectionHeader_V2 & other) const
 
 void nn::es::SectionHeader_V2::toBytes()
 {
-	mRawBinary.alloc(sizeof(sSectionHeader_v2));
+	mRawBinary = tc::ByteData(sizeof(sSectionHeader_v2));
 	sSectionHeader_v2* hdr = (sSectionHeader_v2*)mRawBinary.data();
 
-	hdr->section_offset = (mSectionOffset);
-	hdr->record_size = (mRecordSize);
-	hdr->section_size = (mSectionSize);
-	hdr->record_num = (mRecordNum);
-	hdr->section_type = (mSectionType);
+	hdr->section_offset.wrap(mSectionOffset);
+	hdr->record_size.wrap(mRecordSize);
+	hdr->section_size.wrap(mSectionSize);
+	hdr->record_num.wrap(mRecordNum);
+	hdr->section_type.wrap(mSectionType);
 }
 
 void nn::es::SectionHeader_V2::fromBytes(const byte_t * bytes, size_t len)
 {
-	if (len < sizeof(sSectionHeader_v2))
-	{
-		throw fnd::Exception(kModuleName, "Binary too small");
-	}
+	if (bytes == nullptr) { throw tc::ArgumentNullException(kModuleName, "bytes was null."); }
+	if (len < sizeof(sSectionHeader_v2)) { throw tc::ArgumentOutOfRangeException(kModuleName, "Binary too small."); }
 
 	clear();
 
-	mRawBinary.alloc(sizeof(sSectionHeader_v2));
+	mRawBinary = tc::ByteData(sizeof(sSectionHeader_v2));
 	memcpy(mRawBinary.data(), bytes, mRawBinary.size());
 	sSectionHeader_v2* hdr = (sSectionHeader_v2*)mRawBinary.data();
 
-	mSectionOffset = hdr->section_offset.get();
-	mRecordSize = hdr->record_size.get();
-	mSectionSize = hdr->section_size.get();
-	mRecordNum = hdr->record_num.get();
-	mSectionType = (ticket::SectionType)hdr->section_type.get();
+	mSectionOffset = hdr->section_offset.unwrap();
+	mRecordSize = hdr->record_size.unwrap();
+	mSectionSize = hdr->section_size.unwrap();
+	mRecordNum = hdr->record_num.unwrap();
+	mSectionType = (ticket::SectionType)hdr->section_type.unwrap();
 }
 
-const fnd::Vec<byte_t>& nn::es::SectionHeader_V2::getBytes() const
+const tc::ByteData& nn::es::SectionHeader_V2::getBytes() const
 {
 	return mRawBinary;
 }
 
 void nn::es::SectionHeader_V2::clear()
 {
-	mRawBinary.clear();
+	memset(mRawBinary.data(), 0, mRawBinary.size());
 	mSectionOffset = 0;
 	mRecordSize = 0;
 	mSectionSize = 0;
