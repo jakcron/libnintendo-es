@@ -55,28 +55,28 @@ namespace es
 		std::array<byte_t, ticket::kEncTitleKeySize> enc_title_key;
 		byte_t format_version;
 		byte_t title_key_enc_type;
-		le_uint16_t ticket_version;
+		tc::bn::le16<uint16_t> ticket_version;
 		byte_t license_type;
 		byte_t common_key_id;
-		le_uint16_t property_mask;
+		tc::bn::le16<uint16_t> property_mask;
 		std::array<byte_t, ticket::kReservedRegionSize> reserved_region; // explicitly reserved
-		le_uint64_t ticket_id;
-		le_uint64_t device_id;
+		tc::bn::le64<uint64_t> ticket_id;
+		tc::bn::le64<uint64_t> device_id;
 		std::array<byte_t, ticket::kRightsIdSize> rights_id;
-		le_uint32_t account_id;
-		le_uint32_t sect_total_size;
-		le_uint32_t sect_header_offset;
-		le_uint16_t sect_num;
-		le_uint16_t sect_entry_size;
+		tc::bn::le32<uint32_t> account_id;
+		tc::bn::le32<uint32_t> sect_total_size;
+		tc::bn::le32<uint32_t> sect_header_offset;
+		tc::bn::le16<uint16_t> sect_num;
+		tc::bn::le16<uint16_t> sect_entry_size;
 	};
 
 	struct sSectionHeader_v2
 	{
-		le_uint32_t section_offset;
-		le_uint32_t record_size;
-		le_uint32_t section_size;
-		le_uint16_t record_num;
-		le_uint16_t section_type;
+		tc::bn::le32<uint32_t> section_offset;
+		tc::bn::le32<uint32_t> record_size;
+		tc::bn::le32<uint32_t> section_size;
+		tc::bn::le16<uint16_t> record_num;
+		tc::bn::le16<uint16_t> section_type;
 	};
 
 	struct sContentRecord_v1
@@ -86,9 +86,9 @@ namespace es
 		static const uint16_t kGroupMask = 0xFC00;
 		static const uint16_t kAccessMaskMask = 0x3FF;
 
-		be_uint32_t group;
+		tc::bn::be32<uint32_t> group;
+		tc::bn::bitarray<kAccessMaskSize> access_mask;
 		//byte_t access_mask[kAccessMaskSize];
-		std::bitset<kAccessMaskSize * 8> access_mask;
 	public:
 		uint32_t index_group() const { return group.unwrap(); }
 		bool is_index_enabled(uint16_t index) const { return access_mask.test(get_access_mask(index));}
