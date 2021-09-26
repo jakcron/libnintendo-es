@@ -58,7 +58,7 @@ namespace es
 		tc::bn::le16<uint16_t> ticket_version;
 		byte_t license_type;
 		byte_t common_key_id;
-		tc::bn::le16<uint16_t> property_mask;
+		tc::bn::bitarray<sizeof(uint16_t)> property_mask;
 		std::array<byte_t, ticket::kReservedRegionSize> reserved_region; // explicitly reserved
 		tc::bn::le64<uint64_t> ticket_id;
 		tc::bn::le64<uint64_t> device_id;
@@ -108,7 +108,6 @@ namespace es
 		inline uint16_t get_access_mask(uint16_t index) const { return index & kAccessMaskMask; }
 		inline uint16_t get_group(uint16_t index) const { return index & kGroupMask; }
 	};
-	size_t x = sizeof(sContentRecord_v1);
 #pragma pack(pop)
 }
 }

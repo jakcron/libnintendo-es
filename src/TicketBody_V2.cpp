@@ -76,12 +76,10 @@ void nn::es::TicketBody_V2::toBytes()
 	body->ticket_version.wrap(mTicketVersion);
 	body->license_type = mLicenseType;
 	body->common_key_id = mCommonKeyId;
-	std::bitset<16> property_mask = 0;
 	for (size_t i = 0; i < mPropertyFlags.size(); i++)
 	{
-		property_mask.set(mPropertyFlags[i]);
+		body->property_mask.set((size_t)mPropertyFlags[i]);
 	}
-	body->property_mask.wrap(property_mask.to_ulong());
 	body->reserved_region = mReservedRegion;
 	body->ticket_id.wrap(mTicketId);
 	body->device_id.wrap(mDeviceId);
@@ -116,10 +114,9 @@ void nn::es::TicketBody_V2::fromBytes(const byte_t * bytes, size_t len)
 	mTicketVersion = body->ticket_version.unwrap();
 	mLicenseType = (ticket::LicenseType)body->license_type;
 	mCommonKeyId = body->common_key_id;
-	std::bitset<16> property_mask = body->property_mask.unwrap();
-	for (size_t i = 0; i < property_mask.size(); i++)
+	for (size_t i = 0; i < body->property_mask.bit_size(); i++)
 	{
-		if (property_mask.test(i))
+		if (body->property_mask.test(i))
 			mPropertyFlags.push_back((ticket::PropertyMaskFlags)i);
 	}
 	mReservedRegion = body->reserved_region;
