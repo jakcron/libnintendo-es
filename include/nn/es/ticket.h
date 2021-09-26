@@ -51,7 +51,7 @@ namespace es
 #pragma pack(push,1)
 	struct sTicketBody_v2
 	{
-		std::array<char, ticket::kIssuerSize> issuer;
+		tc::bn::string<ticket::kIssuerSize> issuer;
 		std::array<byte_t, ticket::kEncTitleKeySize> enc_title_key;
 		byte_t format_version;
 		byte_t title_key_enc_type;
