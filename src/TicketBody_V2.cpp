@@ -70,7 +70,7 @@ void nn::es::TicketBody_V2::toBytes()
 
 	body->format_version = (ticket::kFormatVersion);
 
-	strncpy(body->issuer.data(), mIssuer.c_str(), body->issuer.max_size());
+	body->issuer.encode(mIssuer);
 	body->enc_title_key = mEncTitleKey;
 	body->title_key_enc_type = (mEncType);
 	body->ticket_version.wrap(mTicketVersion);
@@ -108,7 +108,7 @@ void nn::es::TicketBody_V2::fromBytes(const byte_t * bytes, size_t len)
 		throw tc::ArgumentOutOfRangeException(kModuleName, "Unsupported format version");
 	}
 
-	mIssuer = body->issuer.str();
+	mIssuer = body->issuer.decode();
 	mEncTitleKey = body->enc_title_key;
 	mEncType = (ticket::TitleKeyEncType)body->title_key_enc_type;
 	mTicketVersion = body->ticket_version.unwrap();

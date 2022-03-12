@@ -25,14 +25,14 @@ endif
 
 # Shared Library Definitions
 PROJECT_SO_VER_MAJOR = 0
-PROJECT_SO_VER_MINOR = 4
+PROJECT_SO_VER_MINOR = 5
 PROJECT_SO_VER_PATCH = 0
 PROJECT_SONAME = $(PROJECT_NAME).so.$(PROJECT_SO_VER_MAJOR)
 PROJECT_SO_FILENAME = $(PROJECT_SONAME).$(PROJECT_SO_VER_MINOR).$(PROJECT_SO_VER_PATCH)
 
 # Project Dependencies
-PROJECT_DEPEND = toolchain mbedtls
-PROJECT_DEPEND_LOCAL_DIR = libtoolchain libmbedtls
+PROJECT_DEPEND = toolchain fmt mbedtls
+PROJECT_DEPEND_LOCAL_DIR = libtoolchain libfmt libmbedtls
 
 # Generate compiler flags for including project include path
 ifneq ($(PROJECT_INCLUDE_PATH),)
